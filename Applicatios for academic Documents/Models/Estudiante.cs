@@ -12,7 +12,5 @@ namespace Tarea_1.Models
         public string Grade { get; set; }
         public int Age { get; set; }
 
-
-
     }
 }

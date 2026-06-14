@@ -6,7 +6,7 @@ namespace Tarea_1.DTOs
     public class EstudianteDTOs
     {
 
-        [Required]
+        [Required]      
         [JsonIgnore]
         public int Id { get; set; }
         [Required]

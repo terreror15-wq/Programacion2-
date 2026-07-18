@@ -1,10 +1,11 @@
-﻿using DocumentSchool.Domain.Interfaces;
-using DocumentSchool.DTOs;
+﻿
+using DocumentSchool.Aplication.DTOs;
 using DocumentSchool.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using DocumentSchool.Aplication.Contract.Service;
 
 namespace DocumentSchool.Controllers
 {
@@ -12,65 +13,41 @@ namespace DocumentSchool.Controllers
     [ApiController]
     public class RequestController : ControllerBase
     {
-        private readonly IRequestRepesitory repo;
+        private readonly IRequestservice service;
 
-        public RequestController(IRequestRepesitory _repo)
+        public RequestController(IRequestservice _service)
         {
-            repo = _repo;
+            service = _service;
         }
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RequestDTOs>>>GetAllRequest()
         {
-            var Getall = await repo.GetAllRequest();
+            var Getall = await service.GetAllRequest();
 
             return Ok(Getall);
         }
         [HttpGet("{id}")]
         public async Task<ActionResult<RequestDTOs>>GetRequestById(int id)
         {
-            var Getrequest = await repo.GetRequest(id);
-
-            var Nrequest = new RequestDTOs
-            {
-                CreatedAt = Getrequest.CreatedAt,
-                Status = Getrequest.Status,
-                StudentId = Getrequest.StudentId
-            };
-            return Ok(Nrequest);
+            var Getrequest = await service.GetRequest(id);         
+            return Ok(Getrequest);
         }
         [HttpPost]
-        public async Task<ActionResult>AddRequest(RequestDTOs request)
+        public async Task<ActionResult>AddRequest( RequestDTOs request)
         {
-           
-
-             var nrequest = new Request
-             {
-                 CreatedAt = request.CreatedAt,
-                 Status = request.Status,
-                 StudentId = request.StudentId
-
-             };
-              await repo.AddRequest(nrequest);
+            await service.AddRequest(request);
             return NoContent();
-
-
         }
         [HttpDelete("{id}")]
         public async Task<ActionResult>DeleteRequest(int id)
         {
-            await repo.RemoveRequest(id);
+            await service.RemoveRequest(id);
             return NoContent();
         }
         [HttpPut("{id}")]
         public async Task<ActionResult>UpdateRequest(int id, RequestDTOs request)
         {
-            var newrequest = new Request
-            {
-                CreatedAt = request.CreatedAt,
-                Status = request.Status,
-                StudentId = request.StudentId
-            };
-            await repo.UpdateRequest(id, newrequest);
+            await service.UpdateRequest(id, request);
             return NoContent();
             
         }

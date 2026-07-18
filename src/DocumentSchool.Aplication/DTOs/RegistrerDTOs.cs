@@ -1,16 +1,12 @@
-﻿using DocumentSchool.Domain.Core;
-using System.Reflection.Metadata;
-using System.Runtime.InteropServices;
-
-namespace DocumentSchool.Entities
+﻿namespace DocumentSchool.Aplication.DTOs
 {
-    public class Registrer : BaseEntity
+    public class RegistrerDTOs
     {
+
         public DateTime CreatedAt { get; set; }
         public DateTime? DeliveredAt { get; set; }
         public int TotalDocuments { get; set; }
         public int Amount { get; set; }
         public int RequestId { get; set; }
-        public Request Request { get; set; }
     }
 }

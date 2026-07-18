@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace DocumentSchool.Domain.Core
 {
-    internal class BaseEntiti
+    public class BaseEntity
     {
+        public int Id { get; set; }
     }
 }

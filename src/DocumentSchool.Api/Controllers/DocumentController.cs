@@ -1,59 +1,48 @@
-﻿using DocumentSchool.Domain.Interfaces;
-using DocumentSchool.DTOs;
+﻿
+using DocumentSchool.Aplication.DTOs;
 using DocumentSchool.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection.Metadata;
+using DocumentSchool.Aplication.Services;
+using DocumentSchool.Aplication.Contract.Service;
 
-namespace DocumentSchool.Domain.DTOs
+
+namespace DocumentSchool.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class DocumentController : ControllerBase
     {
-        private readonly IDocumentRepository repo;
+        private readonly IDocumentService service;
 
-        public DocumentController(IDocumentRepository _repo)
+        public DocumentController(IDocumentService _service)
         {
-            repo = _repo;
+            service = _service;
         }
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DocumentDTOs>>>GetAllDocument()
         {
-            var getAll = await repo.GetAllDocument();
+            var getAll = await service.GetAllDocument();
             return Ok(getAll);
         }
         [HttpGet ("{id}")]
         public async Task<ActionResult<DocumentDTOs>>GetDocumentById(int id)
         {
-            var getdocument = await repo.GetDocument(id);
+            var getdocument = await service.GetDocument(id);
 
-            var ndocument = new DocumentDTOs
-            {
-                NameDocument = getdocument.NameDocument
-
-            };
-            return Ok(ndocument);
+            return Ok(getdocument);
         }
         [HttpPost]
         public async Task<ActionResult>CreateDocument(DocumentDTOs document)
         {
-            var Ndocument = new Docment
-            {
-                NameDocument = document.NameDocument,
-                RequestId = document.RequestId
-            };
-            await repo.AddDocument(Ndocument);
+            await service.AddDocument(document);
             return NoContent();
         }
         [HttpPut]
         public async Task<ActionResult>UpdateDocument( int id, DocumentDTOs document)
         {
-            var UpDocument = new Docment
-            {
-                NameDocument = document.NameDocument
-            };
-             await repo.UpdateDocument(id, UpDocument);
+            await service.UpdateDocument(id, document); 
             return NoContent();
         }
 
@@ -61,7 +50,7 @@ namespace DocumentSchool.Domain.DTOs
 
         public async Task<ActionResult>DeleteDocument(int id)
         {
-            await repo.RemuveDocument(id);
+            await service.RemuveDocument(id);
             return NoContent();
         }
     }

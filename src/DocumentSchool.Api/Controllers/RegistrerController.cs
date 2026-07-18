@@ -1,8 +1,10 @@
-﻿using DocumentSchool.Domain.Interfaces;
-using DocumentSchool.DTOs;
+﻿
+using DocumentSchool.Aplication.DTOs;
 using DocumentSchool.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Internal;
+using DocumentSchool.Aplication.Contract.Service;
 
 namespace DocumentSchool.Controllers
 {
@@ -10,78 +12,45 @@ namespace DocumentSchool.Controllers
     [ApiController]
     public class RegistrerController : ControllerBase
     {
-        private readonly IRegistrerRepository repo;
+        private readonly IRegistrerService service;
 
-        public RegistrerController(IRegistrerRepository _repo)
+        public RegistrerController(IRegistrerService _service)
         {
-            repo = _repo;
-        }
+            service = _service;
+
+        }              
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RegistrerDTOs>>> GetAllRegistrer()
         {
-            var gettingall = await repo.GetAllRegisters();
-            return Ok(gettingall.Select(x => new RegistrerDTOs
-            {
-                CreatedAt = x.CreatedAt,
-                DeliveredAt = x.DeliveredAt,
-                TotalDocuments = x.TotalDocuments,
-                RequestId = x.RequestId,
-                Amount = x.Amount
-
-            }));
+            var gettingall =  await service.GetAllRegisters();
+            return Ok(gettingall);
+           
         }
         [HttpGet("{id}")]
         public async Task<ActionResult<RegistrerDTOs>>GetRegistrerById(int id)
         {
-            var getregistrer = await repo.GetRegister(id);
-
-            var nregistrer = new RegistrerDTOs
-            {
-                CreatedAt = getregistrer.CreatedAt,
-                DeliveredAt = getregistrer.DeliveredAt,
-                TotalDocuments = getregistrer.TotalDocuments,
-                RequestId = getregistrer.RequestId,
-                Amount = getregistrer.Amount
-                
-
-
-            };
-            return nregistrer;
+            var getregistrer = await service.GetRegister(id);
+            return Ok(getregistrer);
 
         }
         [HttpPost("{id}")]
-        public async Task<ActionResult>AddRegistrer(int id, CreateRegistrerDTOs registrer)
+        public async Task<ActionResult>AddRegistrer(int id, RegistrerDTOs registrer)
         {
-            var addregistrer = new Registrer
-            {
-                CreatedAt = registrer.CreatedAt,
-                DeliveredAt = registrer.DeliveredAt,
-                
-                RequestId = registrer.RequestId,
-                Amount = registrer.Amount
-            };
-            await repo.AddRegistrer(id,addregistrer);
+            await service.AddRegistrer(id,registrer);
             return NoContent();
+            
         }
         [HttpPut("{id}")]
-        public async Task<ActionResult>UpdateRegistrer(int id, CreateRegistrerDTOs registrerDT)
+        public async Task<ActionResult>UpdateRegistrer(int id, RegistrerDTOs registrerDT)
         {
-            var updateregistrer = new Registrer
-            {
-                CreatedAt = registrerDT.CreatedAt,
-                DeliveredAt = registrerDT.DeliveredAt,
-               
-                RequestId = registrerDT.RequestId,
-                Amount = registrerDT.Amount
-            };
-            await repo.UpdateRegistrer(id,updateregistrer);
+            await service.UpdateRegistrer(id, registrerDT);
             return NoContent();
         }
         [HttpDelete("{id}")]
         public async Task<ActionResult>DeleteRegistrer(int id)
         {
-            await repo.RemoveRegistrer(id);
+            await service.RemoveRegistrer(id);
             return NoContent();
         }
 

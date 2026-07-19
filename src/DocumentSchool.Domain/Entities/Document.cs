@@ -1,6 +1,6 @@
 ﻿namespace DocumentSchool.Entities
 {
-    public class Docment
+    public class Docment : BaseEntity
     {
         public string NameDocument { get; set; }
 

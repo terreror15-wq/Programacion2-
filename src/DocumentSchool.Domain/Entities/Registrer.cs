@@ -1,6 +1,6 @@
 ﻿namespace DocumentSchool.Entities
 {
-    public class Registrer
+    public class Registrer : BaseEntity
     {
          public DateTime CreatedAt { get; set; }
         public DateTime? DeliveredAt { get; set; }

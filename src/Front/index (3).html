@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DocumentSchool · Gestión de Solicitudes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3F8FC;
+    --surface:#FFFFFF;
+    --sidebar:#123A5E;
+    --sidebar-hover:#1B4E7E;
+    --sidebar-active:#DCEEFC;
+    --primary:#2E6DA4;
+    --primary-dark:#1D4E7A;
+    --primary-light:#E4F1FB;
+    --border:#DCE7F0;
+    --text:#152436;
+    --text-muted:#5B7186;
+    --success:#2F9E68;
+    --success-bg:#E6F6EE;
+    --warning:#C77700;
+    --warning-bg:#FBF0DC;
+    --danger:#C23B3B;
+    --danger-bg:#FBEAEA;
+    --neutral:#5B7186;
+    --neutral-bg:#EEF3F7;
+    --radius:10px;
+    --shadow-sm: 0 1px 2px rgba(20,50,80,0.06);
+    --shadow-md: 0 8px 24px rgba(18,58,94,0.12);
+    --font-display:'Space Grotesk', sans-serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:var(--font-body);
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--primary-light); }
+  .app{ display:flex; min-height:100vh; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:248px;
+    flex-shrink:0;
+    background:linear-gradient(180deg, var(--sidebar), #0E2D49);
+    color:#EAF3FA;
+    display:flex;
+    flex-direction:column;
+    padding:22px 14px;
+    position:sticky;
+    top:0;
+    height:100vh;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:6px 10px 22px 10px;
+    border-bottom:1px solid rgba(255,255,255,0.12);
+    margin-bottom:18px;
+  }
+  .brand-mark{
+    width:34px; height:34px;
+    border-radius:8px;
+    background:var(--primary-light);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-weight:700; color:var(--primary-dark);
+    font-size:15px;
+    flex-shrink:0;
+    transform:rotate(-3deg);
+  }
+  .brand-text{ line-height:1.15; }
+  .brand-text strong{ font-family:var(--font-display); font-size:15.5px; letter-spacing:0.01em; display:block; }
+  .brand-text span{ font-size:11px; color:#9FC3E0; }
+
+  .nav{ display:flex; flex-direction:column; gap:3px; flex:1; }
+  .nav-item{
+    display:flex; align-items:center; gap:11px;
+    padding:10px 12px;
+    border-radius:8px;
+    color:#C7DDEE;
+    font-size:13.5px;
+    font-weight:500;
+    cursor:pointer;
+    border:none;
+    background:transparent;
+    text-align:left;
+    width:100%;
+    transition:background .15s ease, color .15s ease;
+  }
+  .nav-item svg{ width:17px; height:17px; flex-shrink:0; opacity:0.85; }
+  .nav-item:hover{ background:var(--sidebar-hover); color:#fff; }
+  .nav-item.active{ background:var(--sidebar-active); color:var(--primary-dark); font-weight:600; }
+  .nav-item.active svg{ opacity:1; }
+  .nav-eyebrow{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:0.09em;
+    color:#6E97B7; margin:16px 10px 6px; font-weight:600;
+  }
+  .sidebar-foot{
+    border-top:1px solid rgba(255,255,255,0.12);
+    padding-top:12px;
+    margin-top:10px;
+    font-size:11.5px;
+    color:#7FA5C4;
+  }
+  .conn-row{ display:flex; align-items:center; gap:7px; padding:4px 10px; }
+  .conn-dot{ width:7px; height:7px; border-radius:50%; background:var(--neutral); flex-shrink:0; }
+  .conn-dot.ok{ background:#3FCB86; box-shadow:0 0 0 3px rgba(63,203,134,0.18); }
+  .conn-dot.bad{ background:#E5697A; box-shadow:0 0 0 3px rgba(229,105,122,0.18); }
+
+  /* ---------- Main ---------- */
+  .main{ flex:1; min-width:0; display:flex; flex-direction:column; }
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 32px;
+    background:var(--surface);
+    border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:5;
+  }
+  .topbar h1{ font-family:var(--font-display); font-size:20px; font-weight:600; }
+  .topbar p{ font-size:12.5px; color:var(--text-muted); margin-top:2px; }
+  .topbar-actions{ display:flex; align-items:center; gap:10px; }
+
+  .btn{
+    font-family:var(--font-body);
+    font-size:13px; font-weight:600;
+    padding:9px 16px;
+    border-radius:8px;
+    border:1px solid transparent;
+    cursor:pointer;
+    display:inline-flex; align-items:center; gap:7px;
+    transition:all .15s ease;
+  }
+  .btn svg{ width:14px; height:14px; }
+  .btn-primary{ background:var(--primary); color:#fff; box-shadow:var(--shadow-sm); }
+  .btn-primary:hover{ background:var(--primary-dark); }
+  .btn-ghost{ background:transparent; color:var(--primary-dark); border-color:var(--border); }
+  .btn-ghost:hover{ background:var(--primary-light); }
+  .btn-danger-text{ background:transparent; color:var(--danger); border:none; padding:6px 8px; }
+  .btn-danger-text:hover{ background:var(--danger-bg); border-radius:6px; }
+  .btn-icon{ padding:8px; border-radius:8px; background:transparent; border:1px solid var(--border); color:var(--text-muted); cursor:pointer; }
+  .btn-icon:hover{ background:var(--primary-light); color:var(--primary-dark); }
+
+  .view{ padding:26px 32px 60px; display:none; animation:fadeUp .25s ease; }
+  .view.active{ display:block; }
+  @keyframes fadeUp{ from{ opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- KPI cards ---------- */
+  .kpi-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:26px; }
+  .kpi-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:18px 18px 16px; box-shadow:var(--shadow-sm);
+    position:relative; overflow:hidden;
+  }
+  .kpi-card::before{
+    content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--primary-light);
+  }
+  .kpi-card .kpi-label{ font-size:12px; color:var(--text-muted); font-weight:500; }
+  .kpi-card .kpi-value{ font-family:var(--font-display); font-size:30px; font-weight:700; margin-top:6px; color:var(--primary-dark); }
+  .kpi-card .kpi-sub{ font-size:11.5px; color:var(--text-muted); margin-top:4px; }
+
+  .panel{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    box-shadow:var(--shadow-sm); overflow:hidden;
+  }
+  .panel-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 20px; border-bottom:1px solid var(--border);
+  }
+  .panel-head h2{ font-family:var(--font-display); font-size:15.5px; font-weight:600; }
+  .panel-head .hint{ font-size:12px; color:var(--text-muted); margin-top:2px; }
+
+  .toolbar{ display:flex; align-items:center; gap:10px; padding:14px 20px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .search{
+    flex:1; min-width:180px; display:flex; align-items:center; gap:8px;
+    background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 12px;
+  }
+  .search svg{ width:15px; height:15px; color:var(--text-muted); flex-shrink:0; }
+  .search input{ border:none; background:transparent; outline:none; font-size:13px; width:100%; font-family:var(--font-body); color:var(--text); }
+  select.filter, .toolbar select{
+    border:1px solid var(--border); background:var(--bg); border-radius:8px; padding:8px 10px;
+    font-size:13px; color:var(--text); font-family:var(--font-body); outline:none; cursor:pointer;
+  }
+
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  thead th{
+    text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--text-muted); font-weight:600; padding:10px 20px; border-bottom:1px solid var(--border);
+    background:#FAFCFE;
+  }
+  tbody td{ padding:13px 20px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:#FAFCFE; }
+  .folio{ font-family:var(--font-mono); font-size:12px; color:var(--primary-dark); font-weight:600; letter-spacing:0.02em; }
+  .cell-muted{ color:var(--text-muted); font-size:12.5px; }
+  .row-actions{ display:flex; gap:4px; justify-content:flex-end; }
+
+  .empty-state{ padding:60px 20px; text-align:center; color:var(--text-muted); }
+  .empty-state svg{ width:38px; height:38px; margin-bottom:10px; opacity:0.5; }
+  .empty-state .es-title{ font-family:var(--font-display); font-size:15px; color:var(--text); font-weight:600; margin-bottom:4px; }
+  .empty-state .es-sub{ font-size:12.5px; }
+
+  /* ---------- Stamp badges ---------- */
+  .stamp{
+    display:inline-flex; align-items:center; gap:5px;
+    font-family:var(--font-mono); font-size:10.5px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.06em;
+    padding:4px 10px 4px 9px;
+    border-radius:5px;
+    border:1.5px solid currentColor;
+    box-shadow: 0 0 0 2px var(--stamp-bg, transparent) inset;
+    transform:rotate(-1.2deg);
+    white-space:nowrap;
+  }
+  .stamp::before{ content:''; width:5px; height:5px; border-radius:50%; background:currentColor; flex-shrink:0; }
+  .stamp.pendiente{ color:var(--warning); background:var(--warning-bg); }
+  .stamp.enproceso{ color:var(--primary-dark); background:var(--primary-light); }
+  .stamp.listo{ color:#1C7A46; background:var(--success-bg); }
+  .stamp.entregado{ color:#1C7A46; background:var(--success-bg); }
+  .stamp.rechazada{ color:var(--danger); background:var(--danger-bg); }
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(14,32,50,0.45); backdrop-filter:blur(2px);
+    display:none; align-items:flex-start; justify-content:center; padding:5vh 20px; z-index:50; overflow-y:auto;
+  }
+  .overlay.active{ display:flex; }
+  .modal{
+    background:var(--surface); border-radius:14px; width:100%; max-width:480px;
+    box-shadow:var(--shadow-md); animation:pop .18s ease; overflow:hidden;
+  }
+  @keyframes pop{ from{ opacity:0; transform:translateY(-8px) scale(0.98);} to{opacity:1; transform:translateY(0) scale(1);} }
+  .modal-head{ display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--border); }
+  .modal-head h3{ font-family:var(--font-display); font-size:16px; font-weight:600; }
+  .modal-close{ border:none; background:transparent; cursor:pointer; color:var(--text-muted); padding:4px; border-radius:6px; }
+  .modal-close:hover{ background:var(--bg); }
+  .modal-body{ padding:20px 22px; display:flex; flex-direction:column; gap:14px; max-height:64vh; overflow-y:auto; }
+  .field label{ display:block; font-size:12.5px; font-weight:600; color:var(--text); margin-bottom:6px; }
+  .field .req{ color:var(--danger); }
+  .field input, .field select{
+    width:100%; padding:9px 11px; border:1px solid var(--border); border-radius:8px;
+    font-size:13.5px; font-family:var(--font-body); outline:none; background:var(--bg); color:var(--text);
+    transition:border-color .15s ease;
+  }
+  .field input:focus, .field select:focus{ border-color:var(--primary); background:#fff; }
+  .field .field-hint{ font-size:11px; color:var(--text-muted); margin-top:5px; }
+  .field-row{ display:flex; gap:12px; }
+  .field-row .field{ flex:1; }
+  .modal-foot{ display:flex; justify-content:flex-end; gap:10px; padding:16px 22px; border-top:1px solid var(--border); }
+
+  /* ---------- Toasts ---------- */
+  .toast-stack{ position:fixed; bottom:22px; right:22px; display:flex; flex-direction:column; gap:8px; z-index:100; }
+  .toast{
+    background:#152436; color:#fff; padding:12px 16px; border-radius:9px;
+    font-size:13px; font-weight:500; box-shadow:var(--shadow-md);
+    display:flex; align-items:center; gap:9px; min-width:240px;
+    animation:toastIn .2s ease;
+  }
+  @keyframes toastIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+  .toast.success{ background:#1C4A34; }
+  .toast.error{ background:#5A2323; }
+  .toast-dot{ width:7px; height:7px; border-radius:50%; background:currentColor; flex-shrink:0; }
+
+  .config-row{ display:flex; align-items:center; gap:8px; }
+
+  @media (max-width:900px){
+    .kpi-grid{ grid-template-columns:repeat(2,1fr); }
+    .sidebar{ position:fixed; left:-260px; transition:left .2s ease; z-index:40; }
+    .sidebar.open{ left:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">DS</div>
+      <div class="brand-text">
+        <strong>DocumentSchool</strong>
+        <span>Gestión de expedientes</span>
+      </div>
+    </div>
+
+    <nav class="nav" id="navList">
+      <button class="nav-item active" data-view="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Panel general
+      </button>
+      <div class="nav-eyebrow">Expediente</div>
+      <button class="nav-item" data-view="students">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
+        Estudiantes
+      </button>
+      <button class="nav-item" data-view="requests">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M9.5 13h5M9.5 16.5h5"/></svg>
+        Solicitudes
+      </button>
+      <button class="nav-item" data-view="documents">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l5 5v13H6z"/><path d="M15 3v5h5"/></svg>
+        Documentos
+      </button>
+      <button class="nav-item" data-view="registry">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>
+        Registro de entregas
+      </button>
+    </nav>
+
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-actions" id="topbarActions"></div>
+    </div>
+
+    <!-- ---------- DASHBOARD ---------- -->
+    <section class="view active" id="view-dashboard">
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-label">Estudiantes registrados</div><div class="kpi-value" id="kpiStudents">–</div><div class="kpi-sub">En el expediente general</div></div>
+        <div class="kpi-card"><div class="kpi-label">Solicitudes pendientes</div><div class="kpi-value" id="kpiPending">–</div><div class="kpi-sub">Requieren atención</div></div>
+        <div class="kpi-card"><div class="kpi-label">Documentos emitidos</div><div class="kpi-value" id="kpiDocs">–</div><div class="kpi-sub">Total generados</div></div>
+        <div class="kpi-card"><div class="kpi-label">Entregas registradas</div><div class="kpi-value" id="kpiDeliveries">–</div><div class="kpi-sub">En el registro</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div><h2>Solicitudes recientes</h2><div class="hint">Últimas solicitudes creadas en el sistema</div></div>
+          <button class="btn btn-primary" data-action="new-request">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Nueva solicitud
+          </button>
+        </div>
+        <div id="dashboardRecent"></div>
+      </div>
+    </section>
+
+    <!-- ---------- ESTUDIANTES ---------- -->
+    <section class="view" id="view-students">
+      <div class="panel">
+        <div class="panel-head">
+          <div><h2>Estudiantes</h2><div class="hint">Datos base para generar solicitudes de documentos</div></div>
+          <button class="btn btn-primary" data-action="new-student">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Nuevo estudiante
+          </button>
+        </div>
+        <div class="toolbar">
+          <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="searchStudents" placeholder="Buscar por nombre, apellido o grado…"></div>
+        </div>
+        <div id="studentsTableWrap"></div>
+      </div>
+    </section>
+
+    <!-- ---------- SOLICITUDES ---------- -->
+    <section class="view" id="view-requests">
+      <div class="panel">
+        <div class="panel-head">
+          <div><h2>Solicitudes de documentos</h2><div class="hint">Cada solicitud pertenece a un estudiante y agrupa uno o más documentos</div></div>
+          <button class="btn btn-primary" data-action="new-request">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Nueva solicitud
+          </button>
+        </div>
+        <div class="toolbar">
+          <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="searchRequests" placeholder="Buscar por estudiante…"></div>
+          <select class="filter" id="filterStatus">
+            <option value="">Todos los estados</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="En Proceso">En proceso</option>
+            <option value="Listo">Listo</option>
+            <option value="Entregado">Entregado</option>
+            <option value="Rechazada">Rechazada</option>
+          </select>
+        </div>
+        <div id="requestsTableWrap"></div>
+      </div>
+    </section>
+
+    <!-- ---------- DOCUMENTOS ---------- -->
+    <section class="view" id="view-documents">
+      <div class="panel">
+        <div class="panel-head">
+          <div><h2>Documentos</h2><div class="hint">Documentos individuales dentro de cada solicitud</div></div>
+          <button class="btn btn-primary" data-action="new-document">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Nuevo documento
+          </button>
+        </div>
+        <div class="toolbar">
+          <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="searchDocuments" placeholder="Buscar por nombre de documento…"></div>
+          <select class="filter" id="filterDocRequest"><option value="">Todas las solicitudes</option></select>
+        </div>
+        <div id="documentsTableWrap"></div>
+      </div>
+    </section>
+
+    <!-- ---------- REGISTRO DE ENTREGAS ---------- -->
+    <section class="view" id="view-registry">
+      <div class="panel">
+        <div class="panel-head">
+          <div><h2>Registro de entregas</h2><div class="hint">Constancia de pago y entrega asociada a una solicitud</div></div>
+          <button class="btn btn-primary" data-action="new-registry">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Nuevo registro
+          </button>
+        </div>
+        <div class="toolbar">
+          <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="searchRegistry" placeholder="Buscar por número de solicitud…"></div>
+        </div>
+        <div id="registryTableWrap"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ================= MODAL ================= -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">Nuevo registro</h3>
+      <button class="modal-close" id="modalCloseBtn">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="modalCancelBtn">Cancelar</button>
+      <button class="btn btn-primary" id="modalSaveBtn">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toastStack"></div>
+
+<script>
+/* =========================================================
+   CONFIG
+========================================================= */
+let API_BASE = 'http://localhost:5005/api';
+
+const STATUS_OPTIONS = ["Pendiente","En Proceso","Listo","Entregado","Rechazada"];
+
+/* In-memory state (no localStorage per artifact constraints) */
+const state = { students: [], requests: [], documents: [], registry: [] };
+
+/* =========================================================
+   API LAYER
+   Ajustado a las rutas reales de los controllers:
+   - Student  : GET/POST /Student , GET/DELETE /Student/{id} , PUT /Student?id={id}
+   - Request  : GET/POST /Request , GET/PUT/DELETE /Request/{id}
+   - Document : GET/POST /Document , GET/DELETE /Document/{id} , PUT /Document?id={id}
+   - Registrer: GET /Registrer , GET/PUT/DELETE /Registrer/{id} , POST /Registrer/{requestId}
+========================================================= */
+async function apiFetch(path, options = {}) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options
+  });
+  if (!res.ok) {
+    let detail = '';
+    try { detail = await res.text(); } catch (e) {}
+    throw new Error(`${res.status} ${res.statusText}${detail ? ' — ' + detail.slice(0,150) : ''}`);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+const Api = {
+  students: {
+    list: () => apiFetch('/Student'),
+    create: (data) => apiFetch('/Student', { method:'POST', body: JSON.stringify(data) }),
+    update: (id, data) => apiFetch(`/Student?id=${id}`, { method:'PUT', body: JSON.stringify(data) }),
+    remove: (id) => apiFetch(`/Student/${id}`, { method:'DELETE' }),
+  },
+  requests: {
+    list: () => apiFetch('/Request'),
+    create: (data) => apiFetch('/Request', { method:'POST', body: JSON.stringify(data) }),
+    update: (id, data) => apiFetch(`/Request/${id}`, { method:'PUT', body: JSON.stringify(data) }),
+    remove: (id) => apiFetch(`/Request/${id}`, { method:'DELETE' }),
+  },
+  documents: {
+    list: () => apiFetch('/Document'),
+    create: (data) => apiFetch('/Document', { method:'POST', body: JSON.stringify(data) }),
+    update: (id, data) => apiFetch(`/Document?id=${id}`, { method:'PUT', body: JSON.stringify(data) }),
+    remove: (id) => apiFetch(`/Document/${id}`, { method:'DELETE' }),
+  },
+  registry: {
+    list: () => apiFetch('/Registrer'),
+    create: (requestId, data) => apiFetch(`/Registrer/${requestId}`, { method:'POST', body: JSON.stringify(data) }),
+    update: (id, data) => apiFetch(`/Registrer/${id}`, { method:'PUT', body: JSON.stringify(data) }),
+    remove: (id) => apiFetch(`/Registrer/${id}`, { method:'DELETE' }),
+  }
+};
+
+/* =========================================================
+   TOASTS
+========================================================= */
+function toast(message, type = 'default') {
+  const stack = document.getElementById('toastStack');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span class="toast-dot"></span><span>${message}</span>`;
+  stack.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition='opacity .25s ease'; setTimeout(()=>el.remove(),250); }, 3200);
+}
+
+
+const viewMeta = {
+  dashboard: { title:'Panel general', sub:'Resumen de solicitudes y documentos escolares' },
+  students:  { title:'Estudiantes', sub:'Datos base para generar solicitudes de documentos' },
+  requests:  { title:'Solicitudes', sub:'Solicitudes de documentos por estudiante' },
+  documents: { title:'Documentos', sub:'Documentos individuales asociados a cada solicitud' },
+  registry:  { title:'Registro de entregas', sub:'Constancia de pago y entrega por solicitud' },
+};
+
+function switchView(view) {
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === `view-${view}`));
+  document.getElementById('viewTitle').textContent = viewMeta[view].title;
+  document.getElementById('viewSubtitle').textContent = viewMeta[view].sub;
+}
+document.getElementById('navList').addEventListener('click', (e) => {
+  const btn = e.target.closest('.nav-item');
+  if (btn) switchView(btn.dataset.view);
+});
+
+/* =========================================================
+   HELPERS
+========================================================= */
+function folio(prefix, id) { return `${prefix}-${String(id).padStart(5,'0')}`; }
+function statusClass(status) { return (status || '').toLowerCase().replace(/\s+/g,''); }
+function fmtDate(d) {
+  if (!d) return '<span class="cell-muted">—</span>';
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return '<span class="cell-muted">—</span>';
+  return dt.toLocaleDateString('es-DO', { day:'2-digit', month:'short', year:'numeric' });
+}
+function studentName(studentId) {
+  const s = state.students.find(x => x.id === studentId);
+  return s ? `${s.name} ${s.lastNAme || ''}`.trim() : `Estudiante #${studentId}`;
+}
+function requestLabel(requestId) {
+  const r = state.requests.find(x => x.id === requestId);
+  if (!r) return `Solicitud #${requestId}`;
+  return `${folio('SOL', r.id)} · ${studentName(r.studentId)}`;
+}
+function escapeHtml(str) {
+  return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function toLocalInputDate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return '';
+  return dt.toISOString().slice(0,10);
+}
+
+
+async function loadAll() {
+  try {
+    const [students, requests, documents, registry] = await Promise.all([
+      Api.students.list(), Api.requests.list(), Api.documents.list(), Api.registry.list()
+    ]);
+    state.students = students || [];
+    state.requests = requests || [];
+    state.documents = documents || [];
+    state.registry = registry || [];
+    setConn(true);
+  } catch (err) {
+   
+    console.log("hola teacher, como tamo")
+  }
+  renderDashboard();
+  renderStudents();
+  renderRequests();
+  renderDocuments();
+  renderRegistry();
+}
+
+
+function renderDashboard() {
+  document.getElementById('kpiStudents').textContent = state.students.length;
+  document.getElementById('kpiPending').textContent = state.requests.filter(r => (r.status||'').toLowerCase() === 'pendiente').length;
+  document.getElementById('kpiDocs').textContent = state.documents.length;
+  document.getElementById('kpiDeliveries').textContent = state.registry.length;
+
+  const recent = [...state.requests].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0,6);
+  const wrap = document.getElementById('dashboardRecent');
+  if (!recent.length) {
+    wrap.innerHTML = emptyState('Aún no hay solicitudes', 'Crea la primera solicitud de documentos para un estudiante.');
+    return;
+  }
+  wrap.innerHTML = `<table><thead><tr><th>Folio</th><th>Estudiante</th><th>Estado</th><th>Creada</th></tr></thead><tbody>
+    ${recent.map(r => `<tr>
+      <td class="folio">${folio('SOL', r.id)}</td>
+      <td>${escapeHtml(studentName(r.studentId))}</td>
+      <td><span class="stamp ${statusClass(r.status)}">${escapeHtml(r.status || 'Pendiente')}</span></td>
+      <td class="cell-muted">${fmtDate(r.createdAt)}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function emptyState(title, sub) {
+  return `<div class="empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 13h6M9 17h3M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/></svg>
+    <div class="es-title">${title}</div>
+    <div class="es-sub">${sub}</div>
+  </div>`;
+}
+
+/* =========================================================
+   RENDER: STUDENTS
+========================================================= */
+function renderStudents() {
+  const term = (document.getElementById('searchStudents').value || '').toLowerCase();
+  const rows = state.students.filter(s =>
+    `${s.name} ${s.lastNAme} ${s.grade}`.toLowerCase().includes(term)
+  );
+  const wrap = document.getElementById('studentsTableWrap');
+  if (!rows.length) { wrap.innerHTML = emptyState('No hay estudiantes', 'Registra un estudiante para poder crear solicitudes.'); return; }
+  wrap.innerHTML = `<table><thead><tr><th>Código</th><th>Nombre</th><th>Grado</th><th>Edad</th><th>Teléfono</th><th></th></tr></thead><tbody>
+    ${rows.map(s => `<tr>
+      <td class="folio">${folio('EST', s.id)}</td>
+      <td>${escapeHtml(s.name)} ${escapeHtml(s.lastNAme)}</td>
+      <td>${escapeHtml(s.grade)}</td>
+      <td class="cell-muted">${s.age ?? '—'}</td>
+      <td class="cell-muted">${escapeHtml(s.tel) || '—'}</td>
+      <td><div class="row-actions">
+        <button class="btn-icon" title="Editar" data-edit-student="${s.id}">${iconEdit()}</button>
+        <button class="btn-icon" title="Eliminar" data-delete-student="${s.id}">${iconTrash()}</button>
+      </div></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+document.getElementById('searchStudents').addEventListener('input', renderStudents);
+
+
+function renderRequests() {
+  const term = (document.getElementById('searchRequests').value || '').toLowerCase();
+  const statusFilter = document.getElementById('filterStatus').value;
+  const rows = state.requests.filter(r => {
+    const matchesTerm = studentName(r.studentId).toLowerCase().includes(term);
+    const matchesStatus = !statusFilter || r.status === statusFilter;
+    return matchesTerm && matchesStatus;
+  }).sort((a,b) => b.id - a.id);
+
+  const wrap = document.getElementById('requestsTableWrap');
+  if (!rows.length) { wrap.innerHTML = emptyState('No hay solicitudes', 'Crea una nueva solicitud de documentos para un estudiante.'); return; }
+  wrap.innerHTML = `<table><thead><tr><th>Folio</th><th>Estudiante</th><th>Estado</th><th>Creada</th><th>Documentos</th><th></th></tr></thead><tbody>
+    ${rows.map(r => {
+      const docCount = state.documents.filter(d => d.requestId === r.id).length;
+      return `<tr>
+      <td class="folio">${folio('SOL', r.id)}</td>
+      <td>${escapeHtml(studentName(r.studentId))}</td>
+      <td><span class="stamp ${statusClass(r.status)}">${escapeHtml(r.status || 'Pendiente')}</span></td>
+      <td class="cell-muted">${fmtDate(r.createdAt)}</td>
+      <td class="cell-muted">${docCount}</td>
+      <td><div class="row-actions">
+        <button class="btn-icon" title="Ver documentos" data-view-docs="${r.id}">${iconFolder()}</button>
+        <button class="btn-icon" title="Editar" data-edit-request="${r.id}">${iconEdit()}</button>
+        <button class="btn-icon" title="Eliminar" data-delete-request="${r.id}">${iconTrash()}</button>
+      </div></td>
+    </tr>`}).join('')}
+  </tbody></table>`;
+}
+document.getElementById('searchRequests').addEventListener('input', renderRequests);
+document.getElementById('filterStatus').addEventListener('change', renderRequests);
+
+/* =========================================================
+   RENDER: DOCUMENTS
+========================================================= */
+function refreshDocRequestFilter() {
+  const sel = document.getElementById('filterDocRequest');
+  const current = sel.value;
+  sel.innerHTML = `<option value="">Todas las solicitudes</option>` +
+    state.requests.map(r => `<option value="${r.id}">${folio('SOL', r.id)} · ${escapeHtml(studentName(r.studentId))}</option>`).join('');
+  sel.value = current;
+}
+
+function renderDocuments() {
+  refreshDocRequestFilter();
+  const term = (document.getElementById('searchDocuments').value || '').toLowerCase();
+  const reqFilter = document.getElementById('filterDocRequest').value;
+  const rows = state.documents.filter(d => {
+    const matchesTerm = (d.nameDocument || '').toLowerCase().includes(term);
+    const matchesReq = !reqFilter || String(d.requestId) === reqFilter;
+    return matchesTerm && matchesReq;
+  }).sort((a,b) => b.id - a.id);
+
+  const wrap = document.getElementById('documentsTableWrap');
+  if (!rows.length) { wrap.innerHTML = emptyState('No hay documentos', 'Agrega un documento a una solicitud existente.'); return; }
+  wrap.innerHTML = `<table><thead><tr><th>Folio</th><th>Documento</th><th>Solicitud</th><th></th></tr></thead><tbody>
+    ${rows.map(d => `<tr>
+      <td class="folio">${folio('DOC', d.id)}</td>
+      <td>${escapeHtml(d.nameDocument)}</td>
+      <td class="cell-muted">${escapeHtml(requestLabel(d.requestId))}</td>
+      <td><div class="row-actions">
+        <button class="btn-icon" title="Editar" data-edit-document="${d.id}">${iconEdit()}</button>
+        <button class="btn-icon" title="Eliminar" data-delete-document="${d.id}">${iconTrash()}</button>
+      </div></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+document.getElementById('searchDocuments').addEventListener('input', renderDocuments);
+document.getElementById('filterDocRequest').addEventListener('change', renderDocuments);
+
+
+function renderRegistry() {
+  const term = (document.getElementById('searchRegistry').value || '').toLowerCase();
+  const rows = state.registry.filter(r => requestLabel(r.requestId).toLowerCase().includes(term)).sort((a,b) => b.id - a.id);
+  const wrap = document.getElementById('registryTableWrap');
+  if (!rows.length) { wrap.innerHTML = emptyState('No hay registros de entrega', 'Registra el pago y la entrega de una solicitud.'); return; }
+  wrap.innerHTML = `<table><thead><tr><th>Folio</th><th>Solicitud</th><th>Monto</th><th>Documentos</th><th>Creado</th><th>Entregado</th><th></th></tr></thead><tbody>
+    ${rows.map(r => `<tr>
+      <td class="folio">${folio('REG', r.id)}</td>
+      <td class="cell-muted">${escapeHtml(requestLabel(r.requestId))}</td>
+      <td>RD$ ${Number(r.amount || 0).toLocaleString('es-DO')}</td>
+      <td class="cell-muted">${r.totalDocuments ?? '—'}</td>
+      <td class="cell-muted">${fmtDate(r.createdAt)}</td>
+      <td>${r.deliveredAt ? `<span class="stamp entregado">Entregado</span>` : `<span class="stamp pendiente">Pendiente</span>`}</td>
+      <td><div class="row-actions">
+        <button class="btn-icon" title="Editar" data-edit-registry="${r.id}">${iconEdit()}</button>
+        <button class="btn-icon" title="Eliminar" data-delete-registry="${r.id}">${iconTrash()}</button>
+      </div></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+document.getElementById('searchRegistry').addEventListener('input', renderRegistry);
+
+
+function iconEdit(){ return `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`; }
+function iconTrash(){ return `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>`; }
+function iconFolder(){ return `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>`; }
+
+
+const overlay = document.getElementById('overlay');
+const modalTitle = document.getElementById('modalTitle');
+const modalBody = document.getElementById('modalBody');
+const modalSaveBtn = document.getElementById('modalSaveBtn');
+let currentSave = null;
+
+function openModal(title, bodyHtml, onSave) {
+  modalTitle.textContent = title;
+  modalBody.innerHTML = bodyHtml;
+  currentSave = onSave;
+  overlay.classList.add('active');
+}
+function closeModal() { overlay.classList.remove('active'); currentSave = null; }
+document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
+overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+modalSaveBtn.addEventListener('click', async () => { if (currentSave) await currentSave(); });
+
+function field(label, inner, required=false) {
+  return `<div class="field"><label>${label}${required ? ' <span class="req">*</span>' : ''}</label>${inner}</div>`;
+}
+
+/* ---------- STUDENT FORM ---------- */
+function studentForm(existing) {
+  const s = existing || {};
+  openModal(existing ? 'Editar estudiante' : 'Nuevo estudiante', `
+    <div class="field-row">
+      ${field('Nombre', `<input id="f-name" value="${escapeHtml(s.name||'')}" placeholder="Ej. María">`, true)}
+      ${field('Apellido', `<input id="f-lastname" value="${escapeHtml(s.lastNAme||'')}" placeholder="Ej. Pérez">`, true)}
+    </div>
+    <div class="field-row">
+      ${field('Edad', `<input id="f-age" type="number" min="0" value="${s.age ?? ''}">`, true)}
+      ${field('Grado', `<input id="f-grade" value="${escapeHtml(s.grade||'')}" placeholder="Ej. 6to A">`, true)}
+    </div>
+    ${field('Teléfono', `<input id="f-tel" value="${escapeHtml(s.tel||'')}" placeholder="Ej. 809-555-0123">`)}
+  `, async () => {
+    const data = {
+      name: document.getElementById('f-name').value.trim(),
+      lastNAme: document.getElementById('f-lastname').value.trim(),
+      age: Number(document.getElementById('f-age').value || 0),
+      grade: document.getElementById('f-grade').value.trim(),
+      tel: document.getElementById('f-tel').value.trim(),
+    };
+    if (!data.name || !data.lastNAme) { toast('Nombre y apellido son obligatorios', 'error'); return; }
+    try {
+      if (existing) { data.id = existing.id; await Api.students.update(existing.id, data); toast('Estudiante actualizado', 'success'); }
+      else { await Api.students.create(data); toast('Estudiante creado', 'success'); }
+      closeModal(); await loadAll();
+    } catch (err) { toast(`Error al guardar: ${err.message}`, 'error'); }
+  });
+}
+
+/* ---------- REQUEST FORM ---------- */
+function requestForm(existing) {
+  const r = existing || {};
+  const studentOptions = state.students.map(s => `<option value="${s.id}" ${r.studentId===s.id?'selected':''}>${escapeHtml(s.name)} ${escapeHtml(s.lastNAme)} — ${escapeHtml(s.grade)}</option>`).join('');
+  openModal(existing ? 'Editar solicitud' : 'Nueva solicitud de documentos', `
+    ${field('Estudiante', `<select id="f-student">${state.students.length ? studentOptions : '<option value="">No hay estudiantes registrados</option>'}</select>`, true)}
+    <div class="field-row">
+      ${field('Estado', `<select id="f-status">${STATUS_OPTIONS.map(o=>`<option ${r.status===o?'selected':''}>${o}</option>`).join('')}</select>`, true)}
+      ${field('Fecha de creación', `<input id="f-createdat" type="date" value="${toLocalInputDate(r.createdAt) || toLocalInputDate(new Date())}">`, true)}
+    </div>
+  `, async () => {
+    const studentId = Number(document.getElementById('f-student').value);
+    if (!studentId) { toast('Selecciona un estudiante', 'error'); return; }
+    const data = {
+      studentId,
+      status: document.getElementById('f-status').value,
+      createdAt: new Date(document.getElementById('f-createdat').value).toISOString(),
+    };
+    try {
+      if (existing) { data.id = existing.id; await Api.requests.update(existing.id, data); toast('Solicitud actualizada', 'success'); }
+      else { await Api.requests.create(data); toast('Solicitud creada', 'success'); }
+      closeModal(); await loadAll();
+    } catch (err) { toast(`Error al guardar: ${err.message}`, 'error'); }
+  });
+}
+
+/* ---------- DOCUMENT FORM ---------- */
+function documentForm(existing, presetRequestId) {
+  const d = existing || {};
+  const preset = presetRequestId ?? d.requestId;
+  const reqOptions = state.requests.map(r => `<option value="${r.id}" ${preset===r.id?'selected':''}>${folio('SOL', r.id)} · ${escapeHtml(studentName(r.studentId))}</option>`).join('');
+  openModal(existing ? 'Editar documento' : 'Nuevo documento', `
+    ${field('Solicitud asociada', `<select id="f-reqid">${state.requests.length ? reqOptions : '<option value="">No hay solicitudes registradas</option>'}</select>`, true)}
+    ${field('Nombre del documento', `<input id="f-docname" value="${escapeHtml(d.nameDocument||'')}" placeholder="Ej. Constancia de estudios">`, true)}
+  `, async () => {
+    const requestId = Number(document.getElementById('f-reqid').value);
+    const nameDocument = document.getElementById('f-docname').value.trim();
+    if (!requestId || !nameDocument) { toast('Completa la solicitud y el nombre del documento', 'error'); return; }
+    const data = { nameDocument, requestId };
+    try {
+      if (existing) { data.id = existing.id; await Api.documents.update(existing.id, data); toast('Documento actualizado', 'success'); }
+      else { await Api.documents.create(data); toast('Documento creado', 'success'); }
+      closeModal(); await loadAll();
+    } catch (err) { toast(`Error al guardar: ${err.message}`, 'error'); }
+  });
+}
+
+/* ---------- REGISTRY FORM ---------- */
+function registryForm(existing) {
+  const r = existing || {};
+  const reqOptions = state.requests.map(x => `<option value="${x.id}" ${r.requestId===x.id?'selected':''}>${folio('SOL', x.id)} · ${escapeHtml(studentName(x.studentId))}</option>`).join('');
+  openModal(existing ? 'Editar registro de entrega' : 'Nuevo registro de entrega', `
+    ${field('Solicitud asociada', `<select id="f-reg-reqid" ${existing?'disabled':''}>${state.requests.length ? reqOptions : '<option value="">No hay solicitudes registradas</option>'}</select>`, true)}
+    <div class="field-row">
+      ${field('Monto (RD$)', `<input id="f-amount" type="number" min="0" step="0.01" value="${r.amount ?? ''}">`, true)}
+      ${field('Fecha de creación', `<input id="f-reg-createdat" type="date" value="${toLocalInputDate(r.createdAt) || toLocalInputDate(new Date())}">`, true)}
+    </div>
+    ${field('Fecha de entrega', `<input id="f-deliveredat" type="date" value="${toLocalInputDate(r.deliveredAt)}">`)}
+    <div class="field-hint">El total de documentos se calcula automáticamente según los documentos de la solicitud.</div>
+  `, async () => {
+    const requestId = existing ? existing.requestId : Number(document.getElementById('f-reg-reqid').value);
+    if (!requestId) { toast('Selecciona una solicitud', 'error'); return; }
+    const deliveredVal = document.getElementById('f-deliveredat').value;
+    const data = {
+      requestId,
+      amount: Number(document.getElementById('f-amount').value || 0),
+      createdAt: new Date(document.getElementById('f-reg-createdat').value).toISOString(),
+      deliveredAt: deliveredVal ? new Date(deliveredVal).toISOString() : null,
+      totalDocuments: existing ? existing.totalDocuments : 0,
+    };
+    try {
+      if (existing) { data.id = existing.id; await Api.registry.update(existing.id, data); toast('Registro actualizado', 'success'); }
+      else { await Api.registry.create(requestId, data); toast('Registro de entrega creado', 'success'); }
+      closeModal(); await loadAll();
+    } catch (err) { toast(`Error al guardar: ${err.message}`, 'error'); }
+  });
+}
+
+function confirmDelete(label, onConfirm) {
+  openModal('Eliminar registro', `
+    <div style="font-size:13.5px; line-height:1.5; color:var(--text);">
+      ¿Seguro que deseas eliminar <strong>${escapeHtml(label)}</strong>? Esta acción no se puede deshacer.
+    </div>
+  `, async () => {
+    try { await onConfirm(); toast('Eliminado correctamente', 'success'); closeModal(); await loadAll(); }
+    catch (err) { toast(`Error al eliminar: ${err.message}`, 'error'); }
+  });
+  modalSaveBtn.textContent = 'Eliminar';
+  modalSaveBtn.style.background = 'var(--danger)';
+  const resetBtn = () => { modalSaveBtn.textContent = 'Guardar'; modalSaveBtn.style.background = ''; };
+  const closeBtns = [document.getElementById('modalCloseBtn'), document.getElementById('modalCancelBtn')];
+  closeBtns.forEach(b => b.addEventListener('click', resetBtn, { once:true }));
+}
+
+/* =========================================================
+   EVENT DELEGATION (buttons rendered dynamically)
+========================================================= */
+document.addEventListener('click', (e) => {
+  const t = e.target;
+
+  if (t.closest('[data-action="new-student"]')) return studentForm(null);
+  if (t.closest('[data-action="new-request"]')) return requestForm(null);
+  if (t.closest('[data-action="new-document"]')) return documentForm(null);
+  if (t.closest('[data-action="new-registry"]')) return registryForm(null);
+
+  const editStudent = t.closest('[data-edit-student]');
+  if (editStudent) return studentForm(state.students.find(s => s.id === Number(editStudent.dataset.editStudent)));
+  const delStudent = t.closest('[data-delete-student]');
+  if (delStudent) { const id = Number(delStudent.dataset.deleteStudent); return confirmDelete(`el estudiante ${studentName(id)}`, () => Api.students.remove(id)); }
+
+  const editRequest = t.closest('[data-edit-request]');
+  if (editRequest) return requestForm(state.requests.find(r => r.id === Number(editRequest.dataset.editRequest)));
+  const delRequest = t.closest('[data-delete-request]');
+  if (delRequest) { const id = Number(delRequest.dataset.deleteRequest); return confirmDelete(folio('SOL', id), () => Api.requests.remove(id)); }
+
+  const viewDocs = t.closest('[data-view-docs]');
+  if (viewDocs) {
+    const id = viewDocs.dataset.viewDocs;
+    switchView('documents');
+    document.getElementById('filterDocRequest').value = id;
+    renderDocuments();
+    return;
+  }
+
+  const editDocument = t.closest('[data-edit-document]');
+  if (editDocument) return documentForm(state.documents.find(d => d.id === Number(editDocument.dataset.editDocument)));
+  const delDocument = t.closest('[data-delete-document]');
+  if (delDocument) { const id = Number(delDocument.dataset.deleteDocument); return confirmDelete(folio('DOC', id), () => Api.documents.remove(id)); }
+
+  const editRegistry = t.closest('[data-edit-registry]');
+  if (editRegistry) return registryForm(state.registry.find(r => r.id === Number(editRegistry.dataset.editRegistry)));
+  const delRegistry = t.closest('[data-delete-registry]');
+  if (delRegistry) { const id = Number(delRegistry.dataset.deleteRegistry); return confirmDelete(folio('REG', id), () => Api.registry.remove(id)); }
+});
+
+
+loadAll();
+</script>
+</body>
+</html>
